@@ -40,7 +40,7 @@ def main(page: ft.Page):
 
     # Prizes UI
     p_count = db.reference('/db/quiz/default_prizes').get()
-    p_images = ['assets/all/prize.png' for _ in range(int(p_count))]
+    p_images = ['all/prize.png' for _ in range(int(p_count))]
     prizes = [ft.Image(src=i, fit=ft.ImageFit.CONTAIN, width=p_width, height=p_height) for i in p_images]
     prizes_column = ft.Column(prizes, alignment=ft.MainAxisAlignment.SPACE_EVENLY)
 
@@ -87,7 +87,6 @@ def main(page: ft.Page):
                     alignment=ft.alignment.top_left,
                     border_radius=ft.border_radius.all(15),
                     opacity_on_click=0.5,
-                    # on_click=lambda e: main(page),
                     on_click=lambda e: main(page),
                 ),
                 alignment=ft.alignment.center,
@@ -103,7 +102,7 @@ def main(page: ft.Page):
             [
                 ft.Row(
                     [
-                        ft.Image(src='assets/all/bank.png', width=100, height=100),
+                        ft.Image(src='all/bank.png', width=100, height=100),
                     ],
                 ),
                 prize_list_column
@@ -121,7 +120,7 @@ def main(page: ft.Page):
         index = len(prizes) - current
 
         if index < len(prizes):
-            prizes[index].src = 'assets/all/correct.png'
+            prizes[index].src = 'all/correct.png'
             prizes[index].update()
             prize_to_bank(current)
         current += 1
@@ -132,7 +131,7 @@ def main(page: ft.Page):
             meme_column.controls.append(
                 ft.Container(
                     ft.Image(
-                        src='assets/all/win.png',
+                        src='all/win.png',
                         width=400,
                         height=200,
                     ),
@@ -144,8 +143,8 @@ def main(page: ft.Page):
     def incorrect_answer(e):
         global current
         for p in prizes:
-            if p.src != 'assets/all/correct.png':
-                p.src = 'assets/all/incorrect.png'
+            if p.src != 'all/correct.png':
+                p.src = 'all/incorrect.png'
                 p.update()
 
         if current < 2:
@@ -153,7 +152,7 @@ def main(page: ft.Page):
             meme_column.controls.append(
                 ft.Container(
                     ft.Image(
-                        src='assets/all/first_question_fail.png',
+                        src='all/first_question_fail.png',
                         width=400,
                         height=200,
                     ),
@@ -176,7 +175,7 @@ def main(page: ft.Page):
         meme_column.controls.append(
             ft.Container(
                 ft.Image(
-                    src='assets/all/wrong_answer_meme.png',
+                    src='all/wrong_answer_meme.png',
                     width=400,
                     height=200,
                 ),
@@ -245,7 +244,7 @@ def main(page: ft.Page):
     main_body = ft.Container(
         main_content,
         expand=True,
-        image_src='assets/all/bg.png',
+        image_src='all/bg.png',
         image_fit=ft.ImageFit.COVER,
         image_opacity=0.8,
         border_radius=ft.BorderRadius(5, 5, 5, 5),

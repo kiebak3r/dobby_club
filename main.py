@@ -256,5 +256,4 @@ def main(page: ft.Page):
     page.update()
 
 
-if __name__ == "__main__":
-    ft.app(target=main, assets_dir='assets')
+app = ft.app(target=main, assets_dir='assets', export_asgi_app=True, port=8502)

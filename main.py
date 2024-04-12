@@ -12,7 +12,7 @@ def main(page: ft.Page):
     global current
 
     # Establish a connection to the SQLite database
-    conn = sqlite3.connect('assets/all/questions.db', check_same_thread=False)
+    conn = sqlite3.connect('questions.db', check_same_thread=False)
     cursor = conn.cursor()
 
     def get_question(idx):
@@ -29,7 +29,7 @@ def main(page: ft.Page):
 
     # Theming
     page.fonts = {
-        "Bebas": "assets/all/BebasNeue-Regular.ttf",
+        "Bebas": "assets/fonts/BebasNeue-Regular.ttf",
     }
     page.theme = ft.Theme(font_family="Bebas")
 

@@ -1,7 +1,6 @@
 import secrets
 import flet as ft
-import firebase_admin
-from firebase_admin import credentials, db
+import sqlite3
 
 # Variables
 p_width = 200
@@ -9,19 +8,15 @@ current = 1
 p_height = 100
 
 
-cred = credentials.Certificate("assets/all/creds.json")
-firebase_admin.initialize_app(
-    cred, {
-        'databaseURL': 'https://dobby-club-c17d8-default-rtdb.europe-west1.firebasedatabase.app/'
-    }
-)
-
-
 def main(page: ft.Page):
     global current
 
+    # Establish a connection to the SQLite database
+    conn = sqlite3.connect('assets/all/questions.db', check_same_thread=False)
+    cursor = conn.cursor()
+
     def get_question(idx):
-        return db.reference(f'/db/quiz/{idx}/question').get()
+        return cursor.execute(f'SELECT question FROM quiz WHERE id = {idx}').fetchone()[0]
 
     # Page Configurations
     page.title = "Dobby Club"
@@ -39,7 +34,7 @@ def main(page: ft.Page):
     page.theme = ft.Theme(font_family="Bebas")
 
     # Prizes UI
-    p_count = db.reference('/db/quiz/default_prizes').get()
+    p_count = cursor.execute(f'SELECT default_prizes FROM quiz').fetchone()[0]
     p_images = ['all/prize.png' for _ in range(int(p_count))]
     prizes = [ft.Image(src=i, fit=ft.ImageFit.CONTAIN, width=p_width, height=p_height) for i in p_images]
     prizes_column = ft.Column(prizes, alignment=ft.MainAxisAlignment.SPACE_EVENLY)
@@ -126,7 +121,7 @@ def main(page: ft.Page):
         current += 1
 
         if current > len(prizes):
-            question_control.value = db.reference('/db/prompts/win').get()
+            question_control.value = cursor.execute(f'SELECT win FROM prompts').fetchone()[0]
             question_control.update()
             meme_column.controls.append(
                 ft.Container(
@@ -148,7 +143,7 @@ def main(page: ft.Page):
                 p.update()
 
         if current < 2:
-            question_control.value = db.reference('/db/prompts/first_question_fail').get()
+            question_control.value = cursor.execute(f'SELECT first_question_fail FROM prompts').fetchone()[0]
             meme_column.controls.append(
                 ft.Container(
                     ft.Image(
@@ -171,7 +166,7 @@ def main(page: ft.Page):
             play_again()
             return
 
-        question_control.value = db.reference('/db/prompts/fail').get()
+        question_control.value = cursor.execute(f'SELECT fail FROM prompts').fetchone()[0]
         meme_column.controls.append(
             ft.Container(
                 ft.Image(
@@ -186,7 +181,7 @@ def main(page: ft.Page):
 
     def prize_to_bank(idx: int):
         prize_emoji = secrets.choice(['🎁', '💰', '🌟', '🏆', '🎖️', '🔥'])
-        response = db.reference(f'/db/quiz/{idx}/prize').get()
+        response = cursor.execute(f'SELECT prize FROM quiz WHERE id = {idx}').fetchone()[0]
         prize_list_column.controls.append(
             ft.Text(
                 f'{prize_emoji}   Prize {current} : {response}   ✔️',
@@ -256,4 +251,4 @@ def main(page: ft.Page):
     page.update()
 
 
-app = ft.app(target=main, assets_dir='assets', export_asgi_app=True, port=8502)
+app = ft.app(target=main, assets_dir='assets')

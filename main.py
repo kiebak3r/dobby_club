@@ -11,9 +11,59 @@ p_height = 100
 def main(page: ft.Page):
     global current
 
+    # Update DB Prompts
+    win = ft.TextField(label="Winning Prompt", hint_text="Enter the text to show when user wins")
+    lose = ft.TextField(label="Losing Prompt", hint_text="Enter the text to show when user loses")
+    dq = ft.TextField(label="Default Questions", hint_text="Enter the amount of questions per game (MAX 7)")
+    fqf = ft.TextField(label="Losing Prompt 2", hint_text="Enter the text to show when user fails the first question")
+
+    # Update DB Questions
+    q1 = ft.TextField(label="Question1", hint_text="Please enter the question")
+    q2 = ft.TextField(label="Question2", hint_text="Please enter the question")
+    q3 = ft.TextField(label="Question3", hint_text="Please enter the question")
+    q4 = ft.TextField(label="Question4", hint_text="Please enter the question")
+    q5 = ft.TextField(label="Question5", hint_text="Please enter the question")
+    q6 = ft.TextField(label="Question6", hint_text="Please enter the question")
+    q7 = ft.TextField(label="Question7", hint_text="Please enter the question")
+
+    # Update DB Prizes
+    p1 = ft.TextField(label="Prize1", hint_text="Please enter the prize")
+    p2 = ft.TextField(label="Prize2", hint_text="Please enter the prize")
+    p3 = ft.TextField(label="Prize3", hint_text="Please enter the prize")
+    p4 = ft.TextField(label="Prize4", hint_text="Please enter the prize")
+    p5 = ft.TextField(label="Prize5", hint_text="Please enter the prize")
+    p6 = ft.TextField(label="Prize6", hint_text="Please enter the prize")
+    p7 = ft.TextField(label="Prize7", hint_text="Please enter the prize")
+
     # Establish a connection to the SQLite database
     conn = sqlite3.connect('questions.db', check_same_thread=False)
     cursor = conn.cursor()
+
+    def update_db(e):
+        # Update questions
+        questions = [(q.value, idx) for idx, q in enumerate([q1, q2, q3, q4, q5, q6, q7], start=1) if q.value != ""]
+        for value, idx in questions:
+            cursor.execute('UPDATE quiz SET question = ? WHERE id = ?', (value, idx))
+
+        # Update prizes
+        prizes = [(p.value, idx) for idx, p in enumerate([p1, p2, p3, p4, p5, p6, p7], start=1) if p.value != ""]
+        for value, idx in prizes:
+            cursor.execute('UPDATE quiz SET prize = ? WHERE id = ?', (value, idx))
+
+        # Update prompts
+        if win.value:
+            cursor.execute('UPDATE prompts SET win = ?', (win.value,))
+        if lose.value:
+            cursor.execute('UPDATE prompts SET fail = ?', (lose.value,))
+        if fqf.value:
+            cursor.execute('UPDATE prompts SET first_question_fail = ?', (fqf.value,))
+        if dq.value:
+            cursor.execute('UPDATE quiz SET default_prizes = ?', (dq.value,))
+
+        # Commit changes and close connection
+        conn.commit()
+        conn.close()
+        main(page)
 
     def get_question(idx):
         return cursor.execute(f'SELECT question FROM quiz WHERE id = {idx}').fetchone()[0]
@@ -66,6 +116,69 @@ def main(page: ft.Page):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
     )
 
+    def change_questions(e):
+        def column_header(text):
+            return ft.Text(
+                text,
+                color='#FF0098',
+                size=30,
+                weight=ft.FontWeight.BOLD,
+                text_align=ft.TextAlign.CENTER,
+            )
+
+        page.views[0].controls.clear()
+        page.add(
+            ft.Row(
+                [
+                    ft.Column(
+                        [
+                            column_header('Questions'),
+                            q1, q2, q3, q4, q5, q6, q7
+                        ],
+                        ft.MainAxisAlignment.CENTER,
+                    ),
+                    ft.Column(
+                        [
+                            column_header('Prizes'),
+                            p1, p2, p3, p4, p5, p6, p7
+                        ],
+                        ft.MainAxisAlignment.CENTER,
+                    ),
+                    ft.Column(
+                        [
+                            column_header('Prompts'),
+                            win, lose, fqf, dq
+                        ],
+                        ft.MainAxisAlignment.START,
+                    ),
+                    ft.Container(
+                        ft.CupertinoButton(
+                            content=ft.Text(
+                                "Update",
+                                color=ft.colors.WHITE,
+                                size=20,
+                                weight=ft.FontWeight.BOLD,
+                                text_align=ft.TextAlign.CENTER,
+                                font_family="Bebas",
+                            ),
+                            bgcolor='#FF0098',
+                            alignment=ft.alignment.top_left,
+                            border_radius=ft.border_radius.all(15),
+                            opacity_on_click=0.5,
+                            on_click=update_db,
+                        ),
+                        alignment=ft.alignment.center,
+                    )
+                ],
+                ft.MainAxisAlignment.CENTER,
+            )
+        )
+        page.update()
+
+    def settings_button():
+        prize_list_column.controls.append(ft.Container(ft.TextButton("⚙️", on_click=change_questions)))
+        page.update()
+
     def play_again():
         prize_list_column.controls.append(
             ft.Container(
@@ -82,7 +195,7 @@ def main(page: ft.Page):
                     alignment=ft.alignment.top_left,
                     border_radius=ft.border_radius.all(15),
                     opacity_on_click=0.5,
-                    on_click=lambda e: main(page),
+                    on_click=lambda _: main(page),
                 ),
                 alignment=ft.alignment.center,
             )
@@ -134,6 +247,7 @@ def main(page: ft.Page):
                 )
             )
             play_again()
+            settings_button()
 
     def incorrect_answer(e):
         global current
@@ -164,6 +278,7 @@ def main(page: ft.Page):
                 )
             )
             play_again()
+            settings_button()
             return
 
         question_control.value = cursor.execute(f'SELECT fail FROM prompts').fetchone()[0]
@@ -178,6 +293,7 @@ def main(page: ft.Page):
             )
         )
         play_again()
+        settings_button()
 
     def prize_to_bank(idx: int):
         prize_emoji = secrets.choice(['🎁', '💰', '🌟', '🏆', '🎖️', '🔥'])

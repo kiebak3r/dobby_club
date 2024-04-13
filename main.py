@@ -156,7 +156,7 @@ def main(page: ft.Page):
             )
             prize_list_column.controls.append(
                 ft.Text(
-                    f"Game Over : 0 Prizes Won",
+                    f" ☠️ 0 Prizes Won ❌",
                     size=20,
                     color=ft.colors.WHITE,
                     bgcolor=ft.colors.RED_900,
@@ -184,7 +184,7 @@ def main(page: ft.Page):
         response = cursor.execute(f'SELECT prize FROM quiz WHERE id = {idx}').fetchone()[0]
         prize_list_column.controls.append(
             ft.Text(
-                f'{prize_emoji}   Prize {current} : {response}   ✔️',
+                f'{prize_emoji}   Prize {current} : {response}   ✅',
                 size=20,
                 color=ft.colors.WHITE,
                 bgcolor=ft.colors.GREEN,

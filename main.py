@@ -1,5 +1,5 @@
 import flet as ft
-import time
+import asyncio
 
 # Variables
 p_width = 200
@@ -11,7 +11,7 @@ first_prize_instance = 1
 current_prizes = []
 
 
-def main(page: ft.Page):
+async def main(page: ft.Page):
     global current, seconds, current_beers, first_prize_instance
     current_beers = 0
     seconds = 150
@@ -56,14 +56,6 @@ def main(page: ft.Page):
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
     )
 
-    # meme UI
-    meme_column = ft.Column(
-        controls=[],
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        scroll=ft.ScrollMode.HIDDEN,
-        auto_scroll=False,
-    )
-
     def play_again():
         prize_list_column.controls.append(
             ft.Container(
@@ -80,7 +72,7 @@ def main(page: ft.Page):
                     alignment=ft.alignment.top_left,
                     border_radius=ft.border_radius.all(15),
                     opacity_on_click=0.5,
-                    on_click=lambda _: main(page),
+                    on_click=restart,
                 ),
                 alignment=ft.alignment.center,
             )
@@ -89,6 +81,9 @@ def main(page: ft.Page):
         correct_button.visible = False
         bank.visible = False
         page.update()
+
+    async def restart(e):
+        await main(page)
 
     # Bank UI with Prizes
     bank_column = ft.Container(
@@ -120,19 +115,10 @@ def main(page: ft.Page):
             global seconds
             seconds = 0
             prize_to_bank(e)
-            meme_column.controls.append(
-                ft.Container(
-                    ft.Image(
-                        src='all/win.png',
-                        width=400,
-                        height=300,
-                    ),
-                    alignment=ft.alignment.center,
-                ),
-            )
+
         button_row.controls.append(bank)
         bank.visible = True
-        button_row.update()
+        page.update()
 
     def incorrect_answer(e):
         global current, current_beers
@@ -144,13 +130,9 @@ def main(page: ft.Page):
         bank.visible = False
         button_row.update()
 
-    import time
-
-    def start_timer(e):
+    async def start_timer(e):
         global seconds
         start.visible = False
-        start.update()
-
         button_row.controls.append(incorrect_button)
         button_row.controls.append(correct_button)
         button_row.update()
@@ -158,15 +140,16 @@ def main(page: ft.Page):
         while seconds > 0:
             minutes = seconds // 60
             remaining_seconds = seconds % 60
+
             countdown.value = "{:2d}:{:02d}".format(minutes, remaining_seconds)
             countdown.update()
-
-            time.sleep(1)
+            await asyncio.sleep(1)
             seconds -= 1
 
             if seconds <= 75:
                 countdown.color = ft.colors.AMBER
                 countdown.update()
+
             if seconds <= 30:
                 countdown.color = ft.colors.RED
                 countdown.update()
@@ -250,7 +233,6 @@ def main(page: ft.Page):
                     [
                         countdown_column,
                         button_row,
-                        meme_column,
                         ft.Divider(opacity=0),
                         ft.Divider(opacity=0),
                         ft.Divider(opacity=0),
@@ -282,4 +264,4 @@ def main(page: ft.Page):
     page.update()
 
 
-app = ft.app(target=main, assets_dir='assets')
+ft.app(target=main, assets_dir='assets')
